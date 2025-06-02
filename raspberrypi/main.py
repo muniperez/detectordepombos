@@ -1,7 +1,6 @@
 import serial
 import cv2
 from ultralytics import YOLO
-import torch
 
 SERIAL_PORT = '/dev/ttyUSB0'  # Porta serial do Arduino.
 BAUD_RATE = 9600
