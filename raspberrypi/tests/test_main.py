@@ -1,5 +1,4 @@
 # Testes unitários para o projeto
-import pytest
 from unittest.mock import patch, MagicMock
 import main
 
@@ -31,7 +30,7 @@ def test_detect_pigeon_found():
     mock_result = MagicMock()
     mock_result.names.values.return_value = ['cat', 'Pigeon', 'dog']
     mock_model.return_value = [mock_result]
-    assert main.detect_pigeon('some_image.jpg', mock_model) is True
+    assert main.detect_bird('some_image.jpg', mock_model) is True
 
 # Testa a detecção de objeto que não é pombo
 def test_detect_pigeon_not_found():
@@ -39,5 +38,14 @@ def test_detect_pigeon_not_found():
     mock_result = MagicMock()
     mock_result.names.values.return_value = ['cat', 'dog']
     mock_model.return_value = [mock_result]
-    assert main.detect_pigeon('some_image.jpg', mock_model) is False
+    assert main.detect_bird('some_image.jpg', mock_model) is False
+
+# Testa se o som é tocado corretamente
+def test_play_tone():
+    with patch('main.sa.play_buffer') as mock_play_buffer:
+        mock_play_obj = MagicMock()
+        mock_play_buffer.return_value = mock_play_obj
+        main.play_tone(frequency=1400, duration=1.0)
+        mock_play_buffer.assert_called_once()
+        mock_play_obj.wait_done.assert_called_once()
 
