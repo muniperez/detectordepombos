@@ -3,6 +3,7 @@ import time
 import numpy as np
 import simpleaudio as sa
 from ultralytics import YOLO
+import random
 
 # Função para capturar imagem da câmera
 def capture_image(camera_index=0, filename='capture.jpg'):
@@ -28,7 +29,11 @@ def detect_bird(image_path, model, min_confidence=0.5):
     return False
 
 # Função para tocar um som em uma frequência específica (Hz)
-def play_tone(frequency=1400, duration=1.0, sample_rate=44100):
+def play_tone(frequency=None, duration=1.0, sample_rate=44100):
+    # Se não for passada uma frequência, sorteia entre 18kHz e 25kHz
+    if frequency is None:
+        frequency = random.uniform(18000, 25000)
+    print(f"[DEBUG] Playing tone at {frequency:.2f} Hz")
     t = np.linspace(0, duration, int(sample_rate * duration), False)
     tone = np.sin(frequency * 2 * np.pi * t)
     audio = (tone * 32767).astype(np.int16)
@@ -41,7 +46,7 @@ def main():
         img_path = capture_image()
         if img_path:
             if detect_bird(img_path, model):
-                play_tone(1400, duration=1.0)
+                play_tone()  # Agora a frequência é sorteada automaticamente
         time.sleep(5)
 
 if __name__ == '__main__':
