@@ -1,9 +1,8 @@
-import serial
 import cv2
+import time
+import numpy as np
+import simpleaudio as sa
 from ultralytics import YOLO
-
-SERIAL_PORT = '/dev/ttyUSB0'  # Porta serial do Arduino.
-BAUD_RATE = 9600
 
 # Função para capturar imagem da câmera
 def capture_image(camera_index=0, filename='capture.jpg'):
@@ -15,25 +14,35 @@ def capture_image(camera_index=0, filename='capture.jpg'):
     return filename if ret else None
 
 # Função para detectar pombos na imagem usando YOLOv8
-def detect_pigeon(image_path, model):
+def detect_bird(image_path, model, min_confidence=0.5):
     results = model(image_path)
     for result in results:
-        for cls in result.names.values():
-            if 'pigeon' in cls.lower():
+        # Verifica cada objeto detectado para analisar o nível de confiança e a classe
+        for box in result.boxes:
+            cls_id = int(box.cls[0])
+            cls_name = result.names[cls_id].lower()
+            conf = float(box.conf[0])
+            print(f"[DEBUG] Detected: {cls_name}, Confidence: {conf}")
+            if 'bird' in cls_name and conf >= min_confidence:
                 return True
     return False
 
-def main():
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-    model = YOLO('yolov8n.pt')  # Modelo YOLOv8 pré-treinado.
+# Função para tocar um som em uma frequência específica (Hz)
+def play_tone(frequency=1400, duration=1.0, sample_rate=44100):
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+    tone = np.sin(frequency * 2 * np.pi * t)
+    audio = (tone * 32767).astype(np.int16)
+    play_obj = sa.play_buffer(audio, 1, 2, sample_rate)
+    play_obj.wait_done()
 
+def main():
+    model = YOLO('yolov8n.pt')  # Modelo YOLOv8 pré-treinado.
     while True:
-        line = ser.readline().decode().strip()
-        if line == 'motion_detected':
-            img_path = capture_image()
-            if img_path:
-                if detect_pigeon(img_path, model):
-                    ser.write(b'pigeon\n')
+        img_path = capture_image()
+        if img_path:
+            if detect_bird(img_path, model):
+                play_tone(1400, duration=1.0)
+        time.sleep(5)
 
 if __name__ == '__main__':
     main()
