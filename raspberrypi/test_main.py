@@ -28,7 +28,12 @@ def test_capture_image_failure():
 def test_detect_pigeon_found():
     mock_model = MagicMock()
     mock_result = MagicMock()
-    mock_result.names.values.return_value = ['cat', 'Pigeon', 'dog']
+    # Simula uma caixa de detecção com id de classe 1 ('pombo') e alta confiança
+    mock_box = MagicMock()
+    mock_box.cls = [1]  # índice para 'pombo'
+    mock_box.conf = [0.9]
+    mock_result.boxes = [mock_box]
+    mock_result.names = {0: 'gato', 1: 'bird', 2: 'cachorro'}
     mock_model.return_value = [mock_result]
     assert main.detect_bird('some_image.jpg', mock_model) is True
 
@@ -36,7 +41,12 @@ def test_detect_pigeon_found():
 def test_detect_pigeon_not_found():
     mock_model = MagicMock()
     mock_result = MagicMock()
-    mock_result.names.values.return_value = ['cat', 'dog']
+    # Simula uma caixa de detecção com id de classe 0 ('gato') e alta confiança
+    mock_box = MagicMock()
+    mock_box.cls = [0]  # índice para 'gato'
+    mock_box.conf = [0.9]
+    mock_result.boxes = [mock_box]
+    mock_result.names = {0: 'gato', 1: 'bird', 2: 'cachorro'}
     mock_model.return_value = [mock_result]
     assert main.detect_bird('some_image.jpg', mock_model) is False
 
